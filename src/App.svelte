@@ -103,7 +103,7 @@
 
 		// Website's need content to be produced
 		if (advancedSEO === 'yes') {
-			npv *= 1.25;
+			npv *= 1.5;
 		}
 
 		if (spamFilterSetup === 'yes') {
@@ -120,7 +120,7 @@
         timeEstimate += integrationTime; // Add 1 hour for each integration checked
 
 		// Add 1 hour for every page we design
-		timeEstimate += npd;
+		timeEstimate += npd*1.5;
 
 		// Add 1 hour for every page we develop
 		timeEstimate += npv*(1/npd);
