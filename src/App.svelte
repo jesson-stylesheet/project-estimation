@@ -1,4 +1,6 @@
 <script>
+    import { onMount } from 'svelte';
+
     let email = '';
     let projectType = 'new';
     let businessName = '';
@@ -6,7 +8,7 @@
     let budgetInMind = '';
     let budgetAmount = '';
     let pagesDesigning = 1;
-    let pagesDeveloping = 1;
+    $: pagesDeveloping = pagesDesigning;
     let sitemapReady = '';
     let designVersion = '';
     let domainPurchased = '';
@@ -22,19 +24,19 @@
     let advancedSEO = '';
     let blogPagesMigrating = '';
     let integrations = {
-        gtm: false,
-        ga4: false,
-        gsc: false,
-        facebookPixel: false,
-        ecommerce: false,
-        socialMediaFeed: false,
-        googleMaps: false,
-        mailingCrmIntegration: false,
-        propertyListingCms: false,
-        chatBots: false,
-        bookingApps: false,
-        loyaltyReferralApps: false,
-        other: false
+        gtm: { enabled: false, time: .5 },
+        ga4: { enabled: false, time: .5 },
+        gsc: { enabled: false, time: .5 },
+        facebookPixel: { enabled: false, time: .75 },
+        ecommerce: { enabled: false, time: 2 },
+        socialMediaFeed: { enabled: false, time: 1 },
+        googleMaps: { enabled: false, time: 1 },
+        mailingCrmIntegration: { enabled: false, time: 2 },
+        propertyListingCms: { enabled: false, time: 3 },
+        chatBots: { enabled: false, time: 2 },
+        bookingApps: { enabled: false, time: 1 },
+        loyaltyReferralApps: { enabled: false, time: 1 },
+        other: { enabled: false, time: 1.5 }
     };
     let projectDeadline = '';
     let formSubmissionEmail = '';
@@ -42,15 +44,57 @@
     let websiteTrainingNeeded = '';
     let additionalInfo = '';
 
+    let integrationTime = 0; // This will hold the total time from all checked integrations
     let timeEstimate = 0;
     let costEstimate = 0;
+
+    let showWarning = false; // Reactive statement to show warning
+    $: showWarning = pagesDeveloping < pagesDesigning;
+    $: warningPanel = pagesDeveloping < pagesDesigning ? 'warningPanel' : '';
+
+    // Function to update the disabled state of checkboxes
+    function updateDisabledState() {
+        const seoEnabled = basicSEO === 'yes' || advancedSEO === 'yes';
+        integrations.gtm.enabled = seoEnabled;
+        integrations.ga4.enabled = seoEnabled;
+        integrations.gsc.enabled = seoEnabled;
+        
+        // Check if the elements are present before trying to manipulate them
+        const gtmCheckbox = document.getElementById('gtm');
+        const ga4Checkbox = document.getElementById('ga4');
+        const gscCheckbox = document.getElementById('gsc');
+        
+        if (gtmCheckbox && ga4Checkbox && gscCheckbox) {
+            gtmCheckbox.disabled = seoEnabled;
+            ga4Checkbox.disabled = seoEnabled;
+            gscCheckbox.disabled = seoEnabled;
+        }
+    }
+
+    //Create function to calculate the total of Integration Time
+    function calculateIntegrationTime() {
+        console.log('Dammit');
+        return Object.values(integrations).reduce((totalTime, integration) => {
+            return integration.enabled ? totalTime + integration.time : totalTime;
+        }, 0);
+    }
+
+    $: if (integrations) { // This line is just to trigger reactivity
+        integrationTime = calculateIntegrationTime();
+        }
+
+    // Call the function on mount and whenever seoOptions change
+    onMount(updateDisabledState);
+    $: if (basicSEO || advancedSEO) {
+        updateDisabledState();
+    }
 
     // Reactive statement to recalculate estimations whenever the inputs change
     $: {
 		let npd = Number(pagesDesigning); // number of pages being designed
 		let npv = Number(pagesDeveloping); //number of pages being developed
-        
-		timeEstimate = 0; // Reset time estimate
+
+        timeEstimate = 0;
 
         // Add 1 hour if there's no existing sitemap
         if (sitemapReady === 'no') {
@@ -92,9 +136,11 @@
 		}
 
 		// Website's need content to be produced
-		if (contentProductionNeeded === 'yes') {
-			npv *= 1.25;
-		}
+		if (contentProductionNeeded === 'maybe') {
+			npv *= 1.15;
+		}else if (contentProductionNeeded === 'yes') {
+            npv *= 1.25;
+        }
 
 		// Website's need content to be produced
 		if (basicSEO === 'yes') {
@@ -116,14 +162,17 @@
 
 		timeEstimate += Number(blogPagesMigrating)*0.25;
 
-		const integrationTime = Object.values(integrations).filter(Boolean).length;
-        timeEstimate += integrationTime; // Add 1 hour for each integration checked
-
 		// Add 1 hour for every page we design
 		timeEstimate += npd*1.5;
+        
+        timeEstimate += integrationTime;
 
 		// Add 1 hour for every page we develop
-		timeEstimate += npv*(1/npd);
+		timeEstimate += npv-npd;
+
+        if (npv !== npd && npv/npd < 9.9) {
+            timeEstimate += 1;
+        }
 
 		// New or revamp website project
 		if (projectType === 'revamp') {
@@ -184,6 +233,10 @@
     margin: 0; /* Removes default margin from labels */
   	}
 
+    #warning {
+        color: red;
+    }
+
 	@media (max-width: 660px) {
     	.estimation-panel {
         	position: fixed; /* Fixed positioning to stick the panel at the bottom right corner */
@@ -196,6 +249,10 @@
         	/* Adjust the width as needed */
         	width: 100%;
     	}
+        #warningPanel {
+            top: 70vh !important;
+            height: 200px !important;
+        }
     }
 </style>
 <div class="body">
@@ -244,7 +301,7 @@
     <!-- Budget Amount -->
     <div>
         <label for="budgetAmount">How much (if applicable)?</label>
-        <input type="text" bind:value={budgetAmount}>
+        <input type="number" bind:value={budgetAmount}>
     </div>
 
 <hr><br>
@@ -379,12 +436,6 @@
         </select>
     </div>
 
-    <!-- Example Websites -->
-    <div>
-        <label for="exampleWebsites">Please list any example websites the client likes:</label>
-        <textarea bind:value={exampleWebsites}></textarea>
-    </div>
-
     <!-- Basic SEO -->
     <div>
         <label>Is basic SEO setup required?</label>
@@ -415,66 +466,72 @@
 
     <!-- Integrations Needed -->
 	<div>
-		<label>What integrations are needed?</label>
-		<div class="integration-item">
-			<input type="checkbox" id="gtm" bind:checked={integrations.gtm}>
-			<label for="gtm">Google Tag Manager (GTM)</label>
-		</div>
-		<div class="integration-item">
-			<input type="checkbox" id="ga4" bind:checked={integrations.ga4}>
-			<label for="ga4">Google Analytics 4 (GA4)</label>
-		</div>
-		<div class="integration-item">
-			<input type="checkbox" id="gsc" bind:checked={integrations.gsc}>
-			<label for="gsc">Google Search Console (GSC)</label>
-		</div>
-		<div class="integration-item">
-			<input type="checkbox" id="facebook-pixel" bind:checked={integrations.facebookPixel}>
-			<label for="facebook-pixel">Facebook Pixel</label>
-		</div>
-		<div class="integration-item">
-			<input type="checkbox" id="ecommerce" bind:checked={integrations.ecommerce}>
-			<label for="ecommerce">E-commerce</label>
-		</div>
-		<div class="integration-item">
-			<input type="checkbox" id="social-media-feed" bind:checked={integrations.socialMediaFeed}>
-			<label for="social-media-feed">Social Media Feed</label>
-		</div>
-		<div class="integration-item">
-			<input type="checkbox" id="google-maps" bind:checked={integrations.googleMaps}>
-			<label for="google-maps">Google Maps</label>
-		</div>
-		<div class="integration-item">
-			<input type="checkbox" id="mailing-crm-integration" bind:checked={integrations.mailingCrmIntegration}>
-			<label for="mailing-crm-integration">Mailing/CRM Integration (e.g., Mailchimp)</label>
-		</div>
-		<div class="integration-item">
-			<input type="checkbox" id="property-listing-cms" bind:checked={integrations.propertyListingCms}>
-			<label for="property-listing-cms">Property Listing CMS</label>
-		</div>
-		<div class="integration-item">
-			<input type="checkbox" id="chat-bots" bind:checked={integrations.chatBots}>
-			<label for="chat-bots">Chat Bots</label>
-		</div>
-		<div class="integration-item">
-			<input type="checkbox" id="booking-apps" bind:checked={integrations.bookingApps}>
-			<label for="booking-apps">Booking Apps</label>
-		</div>
-		<div class="integration-item">
-			<input type="checkbox" id="loyalty-referral-apps" bind:checked={integrations.loyaltyReferralApps}>
-			<label for="loyalty-referral-apps">Loyalty/Referral Apps</label>
-		</div>
-		<div class="integration-item">
-			<input type="checkbox" id="other-integrations" bind:checked={integrations.other}>
-			<label for="other-integrations">Other</label>
-		</div>
-	</div>
-
+        <label>What integrations are needed?</label>
+        <div class="integration-item">
+          <input type="checkbox" id="gtm" bind:checked={integrations.gtm.enabled}>
+          <label for="gtm">Google Tag Manager (GTM)</label>
+        </div>
+        <div class="integration-item">
+          <input type="checkbox" id="ga4" bind:checked={integrations.ga4.enabled}>
+          <label for="ga4">Google Analytics 4 (GA4)</label>
+        </div>
+        <div class="integration-item">
+          <input type="checkbox" id="gsc" bind:checked={integrations.gsc.enabled}>
+          <label for="gsc">Google Search Console (GSC)</label>
+        </div>
+        <div class="integration-item">
+          <input type="checkbox" id="facebook-pixel" bind:checked={integrations.facebookPixel.enabled}>
+          <label for="facebook-pixel">Facebook Pixel</label>
+        </div>
+        <div class="integration-item">
+          <input type="checkbox" id="ecommerce" bind:checked={integrations.ecommerce.enabled}>
+          <label for="ecommerce">E-commerce</label>
+        </div>
+        <div class="integration-item">
+          <input type="checkbox" id="social-media-feed" bind:checked={integrations.socialMediaFeed.enabled}>
+          <label for="social-media-feed">Social Media Feed</label>
+        </div>
+        <div class="integration-item">
+          <input type="checkbox" id="google-maps" bind:checked={integrations.googleMaps.enabled}>
+          <label for="google-maps">Google Maps</label>
+        </div>
+        <div class="integration-item">
+          <input type="checkbox" id="mailing-crm-integration" bind:checked={integrations.mailingCrmIntegration.enabled}>
+          <label for="mailing-crm-integration">Mailing/CRM Integration (e.g., Mailchimp)</label>
+        </div>
+        <div class="integration-item">
+          <input type="checkbox" id="property-listing-cms" bind:checked={integrations.propertyListingCms.enabled}>
+          <label for="property-listing-cms">Property Listing CMS</label>
+        </div>
+        <div class="integration-item">
+          <input type="checkbox" id="chat-bots" bind:checked={integrations.chatBots.enabled}>
+          <label for="chat-bots">Chat Bots</label>
+        </div>
+        <div class="integration-item">
+          <input type="checkbox" id="booking-apps" bind:checked={integrations.bookingApps.enabled}>
+          <label for="booking-apps">Booking Apps</label>
+        </div>
+        <div class="integration-item">
+          <input type="checkbox" id="loyalty-referral-apps" bind:checked={integrations.loyaltyReferralApps.enabled}>
+          <label for="loyalty-referral-apps">Loyalty/Referral Apps</label>
+        </div>
+        <div class="integration-item">
+          <input type="checkbox" id="other-integrations" bind:checked={integrations.other.enabled}>
+          <label for="other-integrations">Other</label>
+        </div>
+      </div>
+      
 	<hr><br>
     <!-- Project Deadline -->
     <div>
         <label for="projectDeadline">What is the project deadline?</label>
         <input type="date" bind:value={projectDeadline}>
+    </div>
+
+    <!-- Example Websites -->
+    <div>
+        <label for="exampleWebsites">Please list any example websites the client likes:</label>
+        <textarea bind:value={exampleWebsites}></textarea>
     </div>
 
     <!-- Form Submission Email -->
@@ -519,10 +576,14 @@
 </div>
 
 <!-- Panel to display time and cost estimation -->
-<div class="estimation-panel">
+<div class="estimation-panel" id={warningPanel}>
     <p>Time Estimate: <span>{timeEstimate}</span> hours</p>
 
     <p>Cost Estimate: <span>${costEstimate}</span></p>
+
+    {#if showWarning}
+        <p id="warning">WARNING: The number of pages being developed should not be less than the number of pages being designed.</p>
+    {/if}
 </div>
 </div>
 </div>
