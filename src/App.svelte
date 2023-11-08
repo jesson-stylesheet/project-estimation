@@ -162,6 +162,10 @@
 
 		timeEstimate += Number(blogPagesMigrating)*0.25;
 
+        if (npv > 10) {
+            timeEstimate += npv * 1.15;
+        }
+
 		// Add 1 hour for every page we design
 		timeEstimate += npd*1.5;
         
