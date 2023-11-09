@@ -1,5 +1,4 @@
 <script>
-    import { onMount } from 'svelte';
 
     let email = '';
     let projectType = 'new';
@@ -23,7 +22,7 @@
     let basicSEO = '';
     let advancedSEO = '';
     let blogPagesMigrating = '';
-    let integrations = {
+    $: integrations = {
         gtm: { enabled: false, time: .5 },
         ga4: { enabled: false, time: .5 },
         gsc: { enabled: false, time: .5 },
@@ -48,51 +47,41 @@
     let timeEstimate = 0;
     let costEstimate = 0;
 
+    let seoEnabled = false; // Initial value
+    let shopifyChosen = false; // Initial value
+
     let showWarning = false; // Reactive statement to show warning
     $: showWarning = pagesDeveloping < pagesDesigning;
     $: warningPanel = pagesDeveloping < pagesDesigning ? 'warningPanel' : '';
 
-    // Function to update the disabled state of checkboxes
-    function updateDisabledState() {
-        const seoEnabled = basicSEO === 'yes' || advancedSEO === 'yes';
-        integrations.gtm.enabled = seoEnabled;
-        integrations.ga4.enabled = seoEnabled;
-        integrations.gsc.enabled = seoEnabled;
-        
-        // Check if the elements are present before trying to manipulate them
-        const gtmCheckbox = document.getElementById('gtm');
-        const ga4Checkbox = document.getElementById('ga4');
-        const gscCheckbox = document.getElementById('gsc');
-        
-        if (gtmCheckbox && ga4Checkbox && gscCheckbox) {
-            gtmCheckbox.disabled = seoEnabled;
-            ga4Checkbox.disabled = seoEnabled;
-            gscCheckbox.disabled = seoEnabled;
-        }
+    // Reactive statements
+    $: seoEnabled = basicSEO === 'yes' || advancedSEO === 'yes';
+    $: shopifyChosen = cmsChoice === 'shopify';
+
+    // Reactive statement to update integrations when seoEnabled or shopifyChosen changes
+    $: if (seoEnabled  || shopifyChosen ) {
+        let updatedIntegrations = { ...integrations };
+        updatedIntegrations.gtm.enabled = seoEnabled;
+        updatedIntegrations.ga4.enabled = seoEnabled;
+        updatedIntegrations.gsc.enabled = seoEnabled;
+        updatedIntegrations.ecommerce.enabled = shopifyChosen;
+        integrations = updatedIntegrations; // Reassign to trigger reactivity
     }
 
-    //Create function to calculate the total of Integration Time
     function calculateIntegrationTime() {
-        console.log('Dammit');
         return Object.values(integrations).reduce((totalTime, integration) => {
             return integration.enabled ? totalTime + integration.time : totalTime;
         }, 0);
     }
 
-    $: if (integrations) { // This line is just to trigger reactivity
-        integrationTime = calculateIntegrationTime();
-        }
-
-    // Call the function on mount and whenever seoOptions change
-    onMount(updateDisabledState);
-    $: if (basicSEO || advancedSEO) {
-        updateDisabledState();
-    }
+    // Reactive statement to calculate integration time
+    $: if(integrations) {integrationTime = calculateIntegrationTime();}
 
     // Reactive statement to recalculate estimations whenever the inputs change
     $: {
 		let npd = Number(pagesDesigning); // number of pages being designed
 		let npv = Number(pagesDeveloping); //number of pages being developed
+        let baseCost = 0;
 
         timeEstimate = 0;
 
@@ -183,10 +172,14 @@
 			timeEstimate *= 0.75;
 		}
 
+        if (timeEstimate > 0) {
+            baseCost = 760;
+        }
+
 		// Rounding to 2 decimal places
 		timeEstimate = Number(timeEstimate.toFixed(2));
         // Assuming $160 per hour for cost estimate
-        costEstimate = timeEstimate * 160;
+        costEstimate = (timeEstimate * 160) + baseCost;
 		costEstimate = Number(costEstimate.toFixed(2));
     }
 </script>
