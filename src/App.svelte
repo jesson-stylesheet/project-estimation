@@ -37,6 +37,7 @@
         loyaltyReferralApps: { enabled: false, time: 1 },
         other: { enabled: false, time: 1.5 }
     };
+    let productPages = '';
     let projectDeadline = '';
     let formSubmissionEmail = '';
     let spamFilterSetup = '';
@@ -158,6 +159,7 @@
 		}
 
 		timeEstimate += Number(blogPagesMigrating)*0.25;
+        timeEstimate += Number(productPages)*0.25;
 
         if (npv > 10) {
             timeEstimate += npd * 1.15;
@@ -318,7 +320,7 @@
 
     <!-- Pages Developing -->
     <div>
-        <label for="pagesDeveloping">How many pages are we developing?</label>
+        <label for="pagesDeveloping">How many pages are we developing? (excld. blog & product pages)</label>
         <input type="number" bind:value={pagesDeveloping}>
     </div>
 
@@ -526,10 +528,17 @@
         </div>
       </div>
       
+      {#if integrations.ecommerce.enabled}
+        <div>
+            <label for="productPages">How many product pages are we creating?</label>
+            <input type="number" bind:value={productPages}>
+        </div>
+        {/if}
+
 	<hr><br>
     <!-- Project Deadline -->
     <div>
-        <label for="projectDeadline">What is the project deadline?</label>
+        <label for="projectDeadline">When is the project deadline?</label>
         <input type="date" bind:value={projectDeadline}>
     </div>
 
