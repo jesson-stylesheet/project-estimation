@@ -200,6 +200,15 @@
 		margin: auto;
 		max-width: 1080px;
 	}
+
+    h1 {
+        margin-bottom: 0;
+    }
+
+    .desc {
+        margin-top: 8px;
+        max-width: 70%;
+    }
     .form-container {
         display: flex;
         justify-content: space-between;
@@ -244,6 +253,12 @@
         color: red;
     }
 
+    @media (max-width: 760px) {
+        .desc {
+        max-width: 100%;
+        }
+    }
+
 	@media (max-width: 660px) {
     	.estimation-panel {
         	position: fixed; /* Fixed positioning to stick the panel at the bottom right corner */
@@ -264,7 +279,7 @@
 </style>
 <div class="body">
 <h1>Website Project Checklist</h1>
-<p>This checklist is intended to guide the website project in the scoping phase and to gather necessary information from the client before the project begins.</p>
+<p class="desc">This checklist is intended to guide the website project in the scoping phase and to gather necessary information from the client before the project begins.</p>
 <div class="form-container">
     <div class="form-content">
 <form on:submit|preventDefault={handleSubmit}>
