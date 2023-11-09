@@ -58,13 +58,21 @@
     $: seoEnabled = basicSEO === 'yes' || advancedSEO === 'yes';
     $: shopifyChosen = cmsChoice === 'shopify';
 
-    // Reactive statement to update integrations when seoEnabled or shopifyChosen changes
-    $: if (seoEnabled  || shopifyChosen ) {
+    // Reactive statement to update integrations when seoEnabled changes
+    $: if (seoEnabled) {
         let updatedIntegrations = { ...integrations };
         updatedIntegrations.gtm.enabled = seoEnabled;
         updatedIntegrations.ga4.enabled = seoEnabled;
         updatedIntegrations.gsc.enabled = seoEnabled;
+        
+        integrations = updatedIntegrations; // Reassign to trigger reactivity
+    }
+
+    // Reactive statement to update integrations when shopifyChosen changes
+    $: if (shopifyChosen ) {
+        let updatedIntegrations = { ...integrations };
         updatedIntegrations.ecommerce.enabled = shopifyChosen;
+        
         integrations = updatedIntegrations; // Reassign to trigger reactivity
     }
 
