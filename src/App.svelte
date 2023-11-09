@@ -192,6 +192,13 @@
         costEstimate = (timeEstimate * 160) + baseCost;
 		costEstimate = Number(costEstimate.toFixed(2));
     }
+    let isSubmitted = false;
+    function handleSubmit() {
+    // Here you would typically handle the form submission,
+    // like sending data to a server. For this example,
+    // we'll just set isSubmitted to true to show the message.
+    isSubmitted = true;
+    }
 </script>
 
 <style>
@@ -207,6 +214,7 @@
 
     .desc {
         margin-top: 8px;
+        margin-bottom: 32px;
         max-width: 70%;
     }
     .form-container {
@@ -253,9 +261,27 @@
         color: red;
     }
 
+    .thankyou {
+        display: inline-block;
+        font-weight: 800;
+        animation: waviy 1s infinite;
+        animation-delay: calc(.1s * var(--i));
+    }
+    @keyframes waviy {
+        0%,40%,100% {
+            transform: translateY(0)
+        }
+        20% {
+            transform: translateY(-16px)
+        }
+    }
+
     @media (max-width: 760px) {
         .desc {
         max-width: 100%;
+        }
+        .estimation-panel {
+            margin-left: 2%;
         }
     }
 
@@ -276,11 +302,29 @@
             height: 200px !important;
         }
     }
+
+    @media (max-width: 444px) {
+        .body::after {
+            content: " ";
+            display: block;
+            height: 100px;
+        }
+    }
 </style>
 <div class="body">
 <h1>Website Project Checklist</h1>
 <p class="desc">This checklist is intended to guide the website project in the scoping phase and to gather necessary information from the client before the project begins.</p>
 <div class="form-container">
+    {#if isSubmitted}
+    <div style="display:inline-block;">
+  <span class="thankyou" style="--i:1">Thank </span>
+  <span class="thankyou" style="--i:2">you </span>
+  <span class="thankyou" style="--i:3">for </span>
+  <span class="thankyou" style="--i:4">submitting </span>
+  <span class="thankyou" style="--i:5">the </span>
+  <span class="thankyou" style="--i:6">form! </span>
+</div>
+{:else}
     <div class="form-content">
 <form on:submit|preventDefault={handleSubmit}>
     <!-- Email -->
@@ -603,7 +647,7 @@
     </div>
 </form>
 </div>
-
+{/if}
 <!-- Panel to display time and cost estimation -->
 <div class="estimation-panel" id={warningPanel}>
     <p>Time Estimate: <span>{timeEstimate}</span> hours</p>
