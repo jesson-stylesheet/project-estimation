@@ -113,8 +113,11 @@
             timeEstimate += 0.5;
         }
 
-        // Add 1 hour if managing the DNS for the client
+        // Add 1 hour if managing the DNS for the client and 1 more hour if they want their website to be hosted by a 3rd party web host
         if (dnsHostingManagement === 'us') {
+            timeEstimate += 1;
+        }
+        if (hostingPreference === 'third_party_host') {
             timeEstimate += 1;
         }
 
