@@ -45,8 +45,8 @@
     let additionalInfo = '';
 
     let integrationTime = 0; // This will hold the total time from all checked integrations
-    let timeEstimate = 0;
-    let costEstimate = 0;
+    let timeEstimate = 0; //Initialising the total time estimated
+    let costEstimate = 0; // Initialising the total cost estimated
 
     let seoEnabled = false; // Initial value
     let shopifyChosen = false; // Initial value
@@ -76,7 +76,7 @@
         
         integrations = updatedIntegrations; // Reassign to trigger reactivity
     }
-
+    // Funtion to calculate the total time to integrate the 3rd party apps
     function calculateIntegrationTime() {
         return Object.values(integrations).reduce((totalTime, integration) => {
             return integration.enabled ? totalTime + integration.time : totalTime;
